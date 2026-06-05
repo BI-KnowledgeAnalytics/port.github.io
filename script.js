@@ -671,4 +671,41 @@
     });
   }, { threshold: 0.08 });
   document.querySelectorAll("[data-anim]").forEach(n => io.observe(n));
+
+  /* ---------- Stats counter animation ---------- */
+  const counters = document.querySelectorAll("[data-count]");
+  if (counters.length) {
+    const animateCount = (node) => {
+      const target = parseInt(node.getAttribute("data-count"), 10) || 0;
+      const suffix = node.getAttribute("data-suffix") || "";
+      const duration = 1200;
+      const start = performance.now();
+      const step = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const v = Math.round(target * eased);
+        node.textContent = v + suffix;
+        if (t < 1) requestAnimationFrame(step);
+        else node.textContent = target + suffix;
+      };
+      requestAnimationFrame(step);
+    };
+    const counterIO = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          animateCount(e.target);
+          counterIO.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.4 });
+    counters.forEach(n => counterIO.observe(n));
+  }
+
+  /* ---------- Sticky header shadow on scroll ---------- */
+  const header = document.getElementById("site-header");
+  if (header) {
+    const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
 })();
